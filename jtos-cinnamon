@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# NAME: JTOS-CINNAMON
+# DESC: An installation and deployment script for JaxTech's Cinnamon desktop.
+# Adapted from Derek Taylor's (DistroTube) DTOS script...
+# Top logo inspiration came from Chris Titus's ArchTitus script...
+# DEPENDENCIES: dialog
+
+clear
+
+echo -ne "
+   ████████╗  █████╗  ██╗   ██╗  ████████╗ ███████╗  ██████╗ ██╗  ██╗
+   ╚══██╔══╝ ██╔══██╗  ██╗ ██╔╝  ╚══██╔══╝ ██╔════╝ ██╔════╝ ██║  ██║
+      ██║    ███████║   ████╔╝      ██║    ███████╗ ██║      ███████║
+   ██ ██║    ██╔══██║  ██╔╝██╗      ██║    ██╔════╝ ██║      ██╔══██║
+   ╚███╔╝    ██║  ██║ ██╔╝  ██╗     ██║    ███████╗ ╚██████╗ ██║  ██║
+    ╚══╝     ╚═╝  ╚═╝ ╚═╝   ╚═╝     ╚═╝    ╚══════╝  ╚═════╝ ╚═╝  ╚═╝
+
+"
+echo " JTOS script will launch in 5 seconds..."
+
+sleep 5
+
+if [ "$(id -u)" = 0 ]; then
+    echo "##################################################################"
+    echo "This script MUST NOT be run as root user since it makes changes"
+    echo "to the \$HOME directory of the \$USER executing this script."
+    echo "The \$HOME directory of the root user is, of course, '/root'."
+    echo "We don't want to mess around in there. So run this script as a"
+    echo "normal user. You will be asked for a sudo password when necessary."
+    echo "##################################################################"
+    exit 1
+fi
+
+error() { \
+    clear; printf "ERROR:\\n%s\\n" "$1" >&2; exit 1;
+}
+
+echo "################################################################"
+echo "## Syncing the repos and installing 'dialog' if not installed ##"
+echo "################################################################"
+sudo pacman --noconfirm --needed -Syu dialog || error "Error syncing the repos."
+
+welcome() { \
+    dialog --colors --title "\Z7\ZbInstalling JTOS!" --msgbox "\Z4This is a script that will install JTOS (JaxTech's operating system).  It's really just an installation script for those that want to try out my tiling window manager configurations and associated programs.  You will be asked to enter your sudo password at various points during this installation, so stay near the computer.\\n\\n-JT (Jax Technologies, aka JaxTech)" 16 60
+}
+
+welcome || error "User choose to exit."
+
+speedwarning() { \
+    dialog --colors --title "\Z7\ZbInstalling JTOS!" --yes-label "Continue" --no-label "Exit" --yesno  "\Z4WARNING! The ParallelDownloads option is not enabled in /etc/pacman.conf. This may result in slower installation speeds. Are you sure you want to continue?" 16 60 || error "User choose to exit."
+}
+
+distrowarning() { \
+    dialog --colors --title "\Z7\ZbInstalling JTOS!" --yes-label "Continue" --no-label "Exit" --yesno  "\Z4WARNING! While this script works on all Arch based distros, some distros choose to package certain things that we also package, please look at the package list and remove conflicts manually. Are you sure you want to continue?" 16 60 || error "User choose to exit."
+}
+
+sudo sed -i 's/#ParallelDownloads/ParallelDownloads/g' /etc/pacman.conf
+
+grep -qs "#ParallelDownloads" /etc/pacman.conf && speedwarning
+grep -qs "ID=arch" /etc/os-release || distrowarning
+
+# https://www.shellhacks.com/sudo-echo-to-file-permission-denied/
+echo LANG=en_US.UTF-8 | sudo tee /etc/locale.conf
+echo LC_CTYPE=en_US.UTF-8 | sudo tee -a /etc/locale.conf
+. /etc/locale.conf
+
+localewarning() { \
+        [[ -z $LANG || -z $LC_CTYPE ]] && \
+        dialog --colors --title "\Z7\ZbInstalling JTOS!" --msgbox "\Z4WARNING! Your locales have not been set! Please check that both the LANG and LC_CTYPE variables are set to the appropriate locale in /etc/locale.conf (NOTE: they should both be the same). Run 'sudo locale-gen', reboot and run the script again. You can reference the Arch Wiki while doing so: https://wiki.archlinux.org/title/locale" 16 60 && error "Your locales have not been set! Please check that both the LANG and LC_CTYPE variables are set to the appropriate locale in /etc/locale.conf (NOTE: they should both be the same). Run 'sudo locale-gen', reboot and run the script again. You can reference the Arch Wiki while doing so: https://wiki.archlinux.org/title/locale"
+}
+
+localewarning
+
+lastchance() { \
+    dialog --colors --title "\Z7\ZbInstalling JTOS!" --msgbox "\Z4WARNING! The JTOS installation script is currently in public beta testing. It is strongly recommended that you not install this on production machines. It is recommended that you try this out in either a virtual machine or on a test machine." 16 60
+
+    dialog --colors --title "\Z7\ZbAre You Sure You Want To Continue?" --yes-label "Continue Installation" --no-label "Exit" --yesno "\Z4Shall we begin installing JTOS?" 8 60 || { clear; exit 1; }
+}
+
+lastchance || error "User choose to exit."
+
+### Set System clock synchronization to true
+sudo timedatectl set-ntp true
+
+######################################
+###  PACKAGE INSTALLATION SECTION  ###
+######################################
+sudo pacman -Sy xmonad xmonad-contrib xmobar dmenu xterm xwallpaper alacritty vim firefox picom sddm exa htop mlocate wget unzip pacman-contrib ttf-font-awesome cmatrix cmus pcmanfm
+
+#####################################
+###  CONFIG INSTALLATION SECTION  ###
+#####################################
+install_path=$(pwd)
+[ ! -d ~/.config/alacritty ] && mkdir -p ~/.config/alacritty
+[ ! -d ~/.config/xmobar ] && mkdir -p ~/.config/xmobar
+[ ! -d ~/.config/xmonad ] && mkdir -p ~/.config/xmonad
+[ ! -d ~/.local/bin ] && mkdir -p ~/.local/bin
+mv $install_path/alacritty.yml ~/.config/alacritty/
+mv $install_path/.bashrc ~/.bashrc
+mv $install_path/wallpaper ~/.config/
+mv $install_path/xmobarrc ~/.config/xmobar/
+mv $install_path/xmonad.hs ~/.config/xmonad/
+mv $install_path/pacupdate ~/.local/bin/
+
+#################################
+###  SETUP WALLPAPER SECTION  ###
+#################################
+[ ! -d /usr/share/backgrounds ] && sudo mkdir -p /usr/share/backgrounds
+sudo mv $install_path/xmonad.png /usr/share/backgrounds/
+#nitrogen --save --set-scaled /usr/share/backgrounds/xmonad.png
+
+xmonad_recompile() { \
+    echo "########################"
+    echo "## Recompiling XMonad ##"
+    echo "########################"
+    xmonad --recompile
+}
+
+xmonad_recompile || echo "Recompiling Xmonad failed!"
+
+# Disable the current login manager
+sudo systemctl disable $(grep '/usr/s\?bin' /etc/systemd/system/display-manager.service | awk -F / '{print $NF}') || echo "Cannot disable current display manager."
+# Enable sddm as login manager
+sudo systemctl enable sddm
+echo "###################################"
+echo "## Enable sddm as login manager. ##"
+echo "###################################"
+
+# Create a local configuration file if it doesn't exist.
+# Standard Arch Linux does not create this file by default.
+[ ! -f "/etc/sddm.conf" ] && \
+    sudo cp /usr/lib/sddm/sddm.conf.d/default.conf /etc/sddm.conf || echo "Default sddm system config file is not found."
+
+echo "##############################"
+echo "## JTOS has been installed! ##"
+echo "##############################"
+
+while true; do
+    read -p "Do you want to reboot to get your jtos? [Y/n] " yn
+    case $yn in
+        [Yy]* ) sudo reboot;;
+        [Nn]* ) break;;
+        "" ) sudo reboot;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
