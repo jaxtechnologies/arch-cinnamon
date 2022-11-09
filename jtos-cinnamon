@@ -85,7 +85,7 @@ sudo timedatectl set-ntp true
 ######################################
 ###  PACKAGE INSTALLATION SECTION  ###
 ######################################
-sudo pacman -Sy cinnamon sddm alacritty vim firefox exa htop mlocate wget unzip cmatrix
+sudo pacman -Sy cinnamon sddm alacritty vim firefox neofetch exa htop mlocate wget unzip cmatrix
 
 #####################################
 ###  CONFIG INSTALLATION SECTION  ###
@@ -95,16 +95,20 @@ install_path=$(pwd)
 mv $install_path/alacritty.yml ~/.config/alacritty/
 mv $install_path/.bashrc ~/.bashrc
 
-# Enable sddm as login manager
-sudo systemctl enable sddm
 echo "###################################"
 echo "## Enable sddm as login manager. ##"
 echo "###################################"
+sudo systemctl enable sddm
 
 # Create a local configuration file if it doesn't exist.
 # Standard Arch Linux does not create this file by default.
 [ ! -f "/etc/sddm.conf" ] && \
     sudo cp /usr/lib/sddm/sddm.conf.d/default.conf /etc/sddm.conf || echo "Default sddm system config file is not found."
+
+echo "##########################"
+echo "## Update the locatedb. ##"
+echo "##########################"
+sudo locatedb
 
 echo "##############################"
 echo "## JTOS has been installed! ##"
