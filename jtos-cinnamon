@@ -105,10 +105,10 @@ sudo systemctl enable sddm
 [ ! -f "/etc/sddm.conf" ] && \
     sudo cp /usr/lib/sddm/sddm.conf.d/default.conf /etc/sddm.conf || echo "Default sddm system config file is not found."
 
-echo "##########################"
-echo "## Update the locatedb. ##"
-echo "##########################"
-sudo locatedb
+echo "###########################"
+echo "## Update the locate db. ##"
+echo "###########################"
+sudo updatedb
 
 echo "##############################"
 echo "## JTOS has been installed! ##"
