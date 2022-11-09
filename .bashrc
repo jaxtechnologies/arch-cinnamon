@@ -18,3 +18,5 @@ alias ll='exa -al --color=always --group-directories-first'  # long format - pre
 alias lt='exa -aT --color=always --group-directories-first' # tree listing
 alias vi='vim'
 PS1='[\u@\h \W]\$ '
+
+neofetch
