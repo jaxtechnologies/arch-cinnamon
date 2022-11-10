@@ -20,3 +20,4 @@ alias vi='vim'
 PS1='[\u@\h \W]\$ '
 
 neofetch
+eval "$(starship init bash)"
