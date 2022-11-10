@@ -94,6 +94,7 @@ install_path=$(pwd)
 [ ! -d ~/.config/alacritty ] && mkdir -p ~/.config/alacritty
 mv $install_path/alacritty.yml ~/.config/alacritty/
 mv $install_path/.bashrc ~/.bashrc
+dconf load /org/cinnamon/desktop/keybindings/ < $install_path/dconf-settings.conf
 
 echo "###################################"
 echo "## Enable sddm as login manager. ##"
