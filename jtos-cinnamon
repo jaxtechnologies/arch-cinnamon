@@ -85,7 +85,7 @@ sudo timedatectl set-ntp true
 ######################################
 ###  PACKAGE INSTALLATION SECTION  ###
 ######################################
-sudo pacman -Sy cinnamon sddm alacritty vim firefox man neofetch exa htop mlocate wget unzip cmatrix
+sudo pacman -Sy cinnamon sddm alacritty vim firefox man neofetch starship exa mlocate htop wget unzip cmatrix
 
 #####################################
 ###  CONFIG INSTALLATION SECTION  ###
